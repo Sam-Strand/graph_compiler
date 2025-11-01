@@ -15,10 +15,10 @@ class CompiledGraph:
 
 
 def create_input_node_func(node: Dict) -> Callable:
-    myid = node['MyID']
+    uid = node['uid']
 
     def input_func(input_values: Dict[str, Any]) -> Any:
-        return np.array(input_values[myid])
+        return np.array(input_values[uid])
     return input_func
 
 
@@ -33,29 +33,34 @@ def create_output_node_func(input_sources: Dict[str, str]) -> Callable:
 class GraphCompiler:
     """Класс компилятора - хранит состояние nodes_pool"""
 
-    def __init__(self, nodes_pool: Dict[str, Callable]):
+    def __init__(self, nodes_pool: Dict[str, Callable], updater=None):
         self.nodes_pool = nodes_pool
+        self.updater = updater
 
     def compile(self, graph: 'Graph') -> 'CompiledGraph':
         """Компилирует граф в исполняемую функцию"""
 
         compiled_nodes = self._compile_nodes(graph)
+        node_count = len(graph.sort)
+        node_list = [
+            (node_id, graph.nodes[node_id], compiled_nodes[node_id])
+            for node_id in graph.sort
+        ]
 
         def calculator(input_values: Dict[str, Any]) -> Dict[str, Any]:
             results = {}
             outputs = {}
 
-            for node_id in graph.sort:
-                node = graph.nodes[node_id]
-                node_func = compiled_nodes[node_id]
-
+            for i, (node_id, node, node_func) in enumerate(node_list, 1):
+                if self.updater:
+                    self.updater(i / node_count, node_id)
                 if node.get('type') == 'in':
                     result = node_func(input_values)
                 else:
                     result = node_func(results)
 
                 if node.get('type') == 'out':
-                    outputs[node['MyID']] = result
+                    outputs[node['uid']] = result
                 else:
                     results[node_id] = result
 
@@ -88,7 +93,7 @@ class GraphCompiler:
         return compiled_nodes
 
     def _create_computation_node_func(self, node: Dict, input_sources: Dict[str, str]) -> Callable:
-        node_func = self.nodes_pool[node['MyID']]
+        node_func = self.nodes_pool[node['uid']]
         input_keys = list(input_sources.keys())
         source_ids = [input_sources[key] for key in input_keys]
 

@@ -3,7 +3,8 @@ from typing import Dict, Any
 from graph import Graph
 from compiler import GraphCompiler
 
-# 1. ОПРЕДЕЛЯЕМ ФУНКЦИИ ДЛЯ УЗЛОВ ГРАФА
+# 1. Определение функций
+
 def add_node(node: Dict, node_inputs: Dict, results: Dict) -> Any:
     """Узел сложения"""
     a = node_inputs['a']
@@ -19,22 +20,21 @@ def multiply_node(node: Dict, node_inputs: Dict, results: Dict) -> Any:
     print(f"        Умножение: {x} * {y} = {result}")
     return result
 
-
-# 2. СОЗДАЕМ ПУЛ ФУНКЦИЙ
+# 2. Пул функций
 nodes_pool = {
     'add': add_node,
     'multiply': multiply_node
 }
 
-# 3. СОЗДАЕМ ДАННЫЕ ГРАФА В JSON ФОРМАТЕ
+# 3. JSON граф
 graph_data = {
     'nodes': [
-        {'id': 'a', 'type': 'in', 'MyID': 'a'},
-        {'id': 'b', 'type': 'in', 'MyID': 'b'},
-        {'id': 'c', 'type': 'in', 'MyID': 'c'},
-        {'id': 'add', 'type': 'compute', 'MyID': 'add'},
-        {'id': 'mult', 'type': 'compute', 'MyID': 'multiply'},
-        {'id': 'result', 'type': 'out', 'MyID': 'result'}
+        {'id': 'a', 'type': 'in', 'uid': 'a'},
+        {'id': 'b', 'type': 'in', 'uid': 'b'},
+        {'id': 'c', 'type': 'in', 'uid': 'c'},
+        {'id': 'add', 'type': 'compute', 'uid': 'add'},
+        {'id': 'mult', 'type': 'compute', 'uid': 'multiply'},
+        {'id': 'result', 'type': 'out', 'uid': 'result'}
     ],
     'connections': [
         {'source': 'a', 'target': 'add', 'targetInput': 'a'},
@@ -45,16 +45,20 @@ graph_data = {
     ]
 }
 
-# 1. СОЗДАЕМ ГРАФ
+# 1. Создаем граф
 graph = Graph(graph_data)
 
-# 2. СОЗДАЕМ КОМПИЛЯТОР
-compiler = GraphCompiler(nodes_pool)
+# 2. Добавляем логирование
+def update(progress, uid):
+    print(f'    Выполнено {progress*100:.3f}%, начат: {uid}')
 
-# 3. КОМПИЛИРУЕМ ГРАФ
+# 2. Подготавливаем компилятор
+compiler = GraphCompiler(nodes_pool, update)
+
+# 3. Компилируем
 compiled_graph = compiler.compile(graph)
 
-# 4. ВЫПОЛНЯЕМ ВЫЧИСЛЕНИЯ
+# 4. Расчеты с разным дано
 # Тестовые данные
 test_cases = [
     {'a': 2, 'b': 3, 'c': 4},  # (2+3)*4 = 20
