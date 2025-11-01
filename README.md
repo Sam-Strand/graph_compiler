@@ -18,7 +18,7 @@ Python библиотека для компиляции и выполнения 
 {
     "id": "unique_node_id",  # Уникальный идентификатор
     "type": "in|out|Any",    # Тип узла
-    "MyID": "function_name"  # Идентификатор функции
+    "uid": "function_name"  # Идентификатор функции
 }
 ```
 
@@ -69,10 +69,10 @@ nodes_pool = {
 # 3. Описываем граф вычислений
 graph_data = {
     'nodes': [
-        {'id': 'a', 'type': 'in', 'MyID': 'a'},
-        {'id': 'b', 'type': 'in', 'MyID': 'b'},
-        {'id': 'add', 'type': 'compute', 'MyID': 'add'},
-        {'id': 'result', 'type': 'out', 'MyID': 'result'}
+        {'id': 'a', 'type': 'in', 'uid': 'a'},
+        {'id': 'b', 'type': 'in', 'uid': 'b'},
+        {'id': 'add', 'type': 'compute', 'uid': 'add'},
+        {'id': 'result', 'type': 'out', 'uid': 'result'}
     ],
     'connections': [
         {'source': 'a', 'target': 'add', 'targetInput': 'a'},

@@ -92,10 +92,10 @@ class Graph:
         self._output_ids = self._extract_output_ids()
 
     def _extract_input_ids(self) -> List[str]:
-        return [node['MyID'] for node in self.json_data['nodes'] if node.get('type') == 'in']
+        return [node['uid'] for node in self.json_data['nodes'] if node.get('type') == 'in']
 
     def _extract_output_ids(self) -> List[str]:
-        return [node['MyID'] for node in self.json_data['nodes'] if node.get('type') == 'out']
+        return [node['uid'] for node in self.json_data['nodes'] if node.get('type') == 'out']
 
     def get_input_ids(self) -> List[str]:
         return self._input_ids
