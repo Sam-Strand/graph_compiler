@@ -55,8 +55,7 @@ pip install https://github.com/Sam-Strand/graph_compiler/releases/download/v1.0.
 
 ## Быстрый старт
 ```python
-from graph import Graph
-from compiler import GraphCompiler
+from graph_compiler import Graph, GraphCompiler
 
 # 1. Определяем функции узлов
 def add_node(node, node_inputs, results):
