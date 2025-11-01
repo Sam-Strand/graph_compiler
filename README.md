@@ -16,9 +16,9 @@ Python библиотека для компиляции и выполнения 
 
 ```JSON
 {
-    'id': 'unique_node_id',  # Уникальный идентификатор
-    'type': 'in|out|Any',    # Тип узла
-    'MyID': 'function_name'  # Идентификатор функции
+    "id": "unique_node_id",  # Уникальный идентификатор
+    "type": "in|out|Any",    # Тип узла
+    "MyID": "function_name"  # Идентификатор функции
 }
 ```
 
@@ -26,9 +26,9 @@ Python библиотека для компиляции и выполнения 
 
 ```JSON
 {
-    'source': 'source_node_id',  # Узел-источник
-    'target': 'target_node_id',  # Узел-получатель
-    'targetInput': 'input_name'  # Имя входного параметра
+    "source": "source_node_id",  # Узел-источник
+    "target": "target_node_id",  # Узел-получатель
+    "targetInput": "input_name"  # Имя входного параметра
 }
 ```
 
