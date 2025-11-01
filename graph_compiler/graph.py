@@ -24,7 +24,7 @@ def find_reachable_nodes(start_nodes: Set[str], reverse_graph: Dict[str, List[st
 
 
 def optimize_graph(json_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Оптимизирует граф, удаляя неиспользуемые узлы"""
+    '''Оптимизирует граф, удаляя неиспользуемые узлы'''
     output_nodes = {
         node['id'] for node in json_data['nodes']
         if node.get('type') == 'out'
@@ -74,7 +74,7 @@ def topological_sort(nodes_dict: Dict[str, Dict], node_input_map) -> List[str]:
 
 
 class Graph:
-    """Класс графа вычислений - хранит состояние графа"""
+    '''Класс графа вычислений - хранит состояние графа'''
 
     def __init__(self, json_data: Dict[str, Any]):
         self.json_data = optimize_graph(json_data)
@@ -88,17 +88,11 @@ class Graph:
             self.connections[target][input_slot] = conn['source']
 
         self.sort = topological_sort(self.nodes, self.connections)
-        self._input_ids = self._extract_input_ids()
-        self._output_ids = self._extract_output_ids()
+        self.input_ids = self._extract_input_ids()
+        self.output_ids = self._extract_output_ids()
 
     def _extract_input_ids(self) -> List[str]:
         return [node['uid'] for node in self.json_data['nodes'] if node.get('type') == 'in']
 
     def _extract_output_ids(self) -> List[str]:
         return [node['uid'] for node in self.json_data['nodes'] if node.get('type') == 'out']
-
-    def get_input_ids(self) -> List[str]:
-        return self._input_ids
-
-    def get_output_ids(self) -> List[str]:
-        return self._output_ids

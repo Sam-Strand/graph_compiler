@@ -6,14 +6,14 @@ from compiler import GraphCompiler
 # 1. Определение функций
 
 def add_node(node: Dict, node_inputs: Dict, results: Dict) -> Any:
-    """Узел сложения"""
+    '''Узел сложения'''
     a = node_inputs['a']
     b = node_inputs['b']
     print(f"        Сложение: {a} + {b} = {a + b}")
     return a + b
 
 def multiply_node(node: Dict, node_inputs: Dict, results: Dict) -> Any:
-    """Узел умножения"""
+    '''Узел умножения'''
     x = node_inputs['x']
     y = node_inputs['y']
     result = x * y

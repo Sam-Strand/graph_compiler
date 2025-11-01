@@ -3,7 +3,7 @@ import numpy as np
 
 
 class CompiledGraph:
-    """Скомпилированный граф - хранит состояние компилированной функции"""
+    '''Скомпилированный граф - хранит состояние компилированной функции'''
 
     def __init__(self, calculator: Callable, input_ids: List[str], output_ids: List[str]):
         self.calculator = calculator
@@ -31,14 +31,14 @@ def create_output_node_func(input_sources: Dict[str, str]) -> Callable:
 
 
 class GraphCompiler:
-    """Класс компилятора - хранит состояние nodes_pool"""
+    '''Класс компилятора - хранит состояние nodes_pool'''
 
     def __init__(self, nodes_pool: Dict[str, Callable], updater=None):
         self.nodes_pool = nodes_pool
         self.updater = updater
 
     def compile(self, graph: 'Graph') -> 'CompiledGraph':
-        """Компилирует граф в исполняемую функцию"""
+        '''Компилирует граф в исполняемую функцию'''
 
         compiled_nodes = self._compile_nodes(graph)
         node_count = len(graph.sort)
@@ -68,12 +68,12 @@ class GraphCompiler:
 
         return CompiledGraph(
             calculator=calculator,
-            input_ids=graph.get_input_ids(),
-            output_ids=graph.get_output_ids()
+            input_ids=graph.input_ids,
+            output_ids=graph.output_ids
         )
 
     def _compile_nodes(self, graph: 'Graph') -> Dict[str, Callable]:
-        """Компилирует все узлы графа"""
+        '''Компилирует все узлы графа'''
         compiled_nodes = {}
 
         for node_id in graph.sort:
@@ -84,11 +84,9 @@ class GraphCompiler:
             if node_type == 'in':
                 compiled_nodes[node_id] = create_input_node_func(node)
             elif node_type == 'out':
-                compiled_nodes[node_id] = create_output_node_func(
-                    input_sources)
+                compiled_nodes[node_id] = create_output_node_func(input_sources)
             else:
-                compiled_nodes[node_id] = self._create_computation_node_func(
-                    node, input_sources)
+                compiled_nodes[node_id] = self._create_computation_node_func(node, input_sources)
 
         return compiled_nodes
 
