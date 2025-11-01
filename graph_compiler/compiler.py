@@ -31,7 +31,13 @@ def create_output_node_func(input_sources: Dict[str, str]) -> Callable:
 
 
 class GraphCompiler:
-    '''Класс компилятора - хранит состояние nodes_pool'''
+    '''
+    Класс компилятора - хранит доступные функции
+
+    Args:
+        nodes_pool: Словарь доступных функций
+        updater: Функция вызываемая в начале обработки каждой ноды (логер) получает как аргументы долю текущего прогресса и uid выполняемой функции
+    '''
 
     def __init__(self, nodes_pool: Dict[str, Callable], updater=None):
         self.nodes_pool = nodes_pool
