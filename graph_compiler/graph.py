@@ -1,5 +1,6 @@
-from typing import Dict, List, Any, Set
+from typing import Dict, List, Any, Set, Iterator, Optional
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
 
 
 def build_reverse_graph(json_data: Dict[str, Any]) -> Dict[str, List[str]]:
@@ -73,13 +74,30 @@ def topological_sort(nodes_dict: Dict[str, Dict], node_input_map) -> List[str]:
     return sorted_order
 
 
+@dataclass
+class Node:
+    id: str # Уникальный идентификатор ноды
+    uid: Optional[str] = None # Уникальный идентификатор типа ноды
+    type: Optional[str] = None # Группа ноды
+    data: Dict[str, Any] = field(default_factory=dict) # Дополнительные параметры
+
+
 class Graph:
     '''Класс графа вычислений - хранит состояние графа'''
 
     def __init__(self, json_data: Dict[str, Any]):
         self.json_data = optimize_graph(json_data)
 
-        self.nodes = {node['id']: node for node in self.json_data['nodes']}
+        self.nodes = {
+            node['id']: Node(
+                id=node['id'],
+                uid=node.get('uid'),
+                type=node.get('type'),
+                data=node.get('data', {})
+            ) 
+            for node in self.json_data['nodes']
+        }
+
         self.connections = defaultdict(dict)
 
         for conn in self.json_data['connections']:
@@ -90,6 +108,11 @@ class Graph:
         self.sort = topological_sort(self.nodes, self.connections)
         self.input_ids = self._extract_input_ids()
         self.output_ids = self._extract_output_ids()
+
+    def __iter__(self) -> Iterator[Dict[str, Any]]:
+        '''Итерация по узлам графа в порядке топологической сортировки'''
+        for node_id in self.sort:
+            yield self.nodes[node_id]
 
     def _extract_input_ids(self) -> List[str]:
         return [node['uid'] for node in self.json_data['nodes'] if node.get('type') == 'in']

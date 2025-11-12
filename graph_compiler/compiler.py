@@ -15,7 +15,7 @@ class CompiledGraph:
 
 
 def create_input_node_func(node: Dict) -> Callable:
-    uid = node['uid']
+    uid = node.uid
 
     def input_func(input_values: Dict[str, Any]) -> Any:
         return np.array(input_values[uid])
@@ -60,13 +60,13 @@ class GraphCompiler:
             for i, (node_id, node, node_func) in enumerate(node_list, 1):
                 if self.updater:
                     self.updater(i / node_count, node_id)
-                if node.get('type') == 'in':
+                if node.type == 'in':
                     result = node_func(input_values)
                 else:
                     result = node_func(results)
 
-                if node.get('type') == 'out':
-                    outputs[node['uid']] = result
+                if node.type == 'out':
+                    outputs[node.uid] = result
                 else:
                     results[node_id] = result
 
@@ -82,22 +82,21 @@ class GraphCompiler:
         '''Компилирует все узлы графа'''
         compiled_nodes = {}
 
-        for node_id in graph.sort:
-            node = graph.nodes[node_id]
-            node_type = node.get('type')
-            input_sources = graph.connections.get(node_id, {})
+        for node in graph:
+            node_type = node.type
+            input_sources = graph.connections.get(node.id, {})
 
             if node_type == 'in':
-                compiled_nodes[node_id] = create_input_node_func(node)
+                compiled_nodes[node.id] = create_input_node_func(node)
             elif node_type == 'out':
-                compiled_nodes[node_id] = create_output_node_func(input_sources)
+                compiled_nodes[node.id] = create_output_node_func(input_sources)
             else:
-                compiled_nodes[node_id] = self._create_computation_node_func(node, input_sources)
+                compiled_nodes[node.id] = self._create_computation_node_func(node, input_sources)
 
         return compiled_nodes
 
     def _create_computation_node_func(self, node: Dict, input_sources: Dict[str, str]) -> Callable:
-        node_func = self.nodes_pool[node['uid']]
+        node_func = self.nodes_pool[node.uid]
         input_keys = list(input_sources.keys())
         source_ids = [input_sources[key] for key in input_keys]
 
