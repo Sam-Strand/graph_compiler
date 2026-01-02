@@ -14,19 +14,27 @@ class CompiledGraph:
         return self.calculator(input_values)
 
 
-def create_input_node_func(node: Dict) -> Callable:
+def create_input_node_func(node) -> Callable:
     uid = node.uid
 
     def input_func(input_values: Dict[str, Any]) -> Any:
         return np.array(input_values[uid])
+
     return input_func
 
 
-def create_output_node_func(input_sources: Dict[str, str]) -> Callable:
-    source_id = next(iter(input_sources.values()))
+def create_output_node_func(input_sources: Dict[str, tuple]) -> Callable:
+    slots = dict(input_sources)
 
-    def output_func(results: Dict[str, Any]) -> Any:
-        return results[source_id]
+    def output_func(results: Dict[str, Any]) -> Dict[str, Any]:
+        out = {}
+        for slot, (source_id, source_output) in slots.items():
+            value = results[source_id]
+            if isinstance(value, dict):
+                value = value[source_output]
+            out[slot] = value
+        return out
+
     return output_func
 
 
@@ -43,11 +51,12 @@ class GraphCompiler:
         self.nodes_pool = nodes_pool
         self.updater = updater
 
-    def compile(self, graph: 'Graph') -> 'CompiledGraph':
+    def compile(self, graph: 'Graph') -> CompiledGraph:
         '''Компилирует граф в исполняемую функцию'''
 
         compiled_nodes = self._compile_nodes(graph)
         node_count = len(graph.sort)
+
         node_list = [
             (node_id, graph.nodes[node_id], compiled_nodes[node_id])
             for node_id in graph.sort
@@ -60,6 +69,7 @@ class GraphCompiler:
             for i, (node_id, node, node_func) in enumerate(node_list, 1):
                 if self.updater:
                     self.updater(i / node_count, node_id)
+
                 if node.type == 'in':
                     result = node_func(input_values)
                 else:
@@ -79,32 +89,41 @@ class GraphCompiler:
         )
 
     def _compile_nodes(self, graph: 'Graph') -> Dict[str, Callable]:
-        '''Компилирует все узлы графа'''
         compiled_nodes = {}
 
         for node in graph:
-            node_type = node.type
-            input_sources = graph.connections.get(node.id, {})
+            input_sources = graph.inputs.get(node.id, {})
 
-            if node_type == 'in':
+            if node.type == 'in':
                 compiled_nodes[node.id] = create_input_node_func(node)
-            elif node_type == 'out':
+
+            elif node.type == 'out':
                 compiled_nodes[node.id] = create_output_node_func(input_sources)
+
             else:
-                compiled_nodes[node.id] = self._create_computation_node_func(node, input_sources)
+                compiled_nodes[node.id] = self._create_computation_node_func(
+                    node,
+                    input_sources
+                )
 
         return compiled_nodes
 
-    def _create_computation_node_func(self, node: Dict, input_sources: Dict[str, str]) -> Callable:
+    def _create_computation_node_func(self, node, input_sources: Dict[str, tuple]) -> Callable:
         node_func = self.nodes_pool[node.uid]
-        input_keys = list(input_sources.keys())
-        source_ids = [input_sources[key] for key in input_keys]
+        slots = dict(input_sources)
 
         def computation_func(results: Dict[str, Any]) -> Any:
-            inputs = {
-                key: results[source_id]
-                for key, source_id in zip(input_keys, source_ids)
-            }
-            return node_func(node=node, node_inputs=inputs, results=results)
+            inputs = {}
+            for slot, (source_id, source_output) in slots.items():
+                value = results[source_id]
+                if isinstance(value, dict):
+                    value = value[source_output]
+                inputs[slot] = value
+
+            return node_func(
+                node=node,
+                node_inputs=inputs,
+                results=results
+            )
 
         return computation_func
