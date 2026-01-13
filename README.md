@@ -50,7 +50,7 @@ pip install git+https://github.com/Sam-Strand/graph_compiler.git
 
 ### Способ 2: Установка готового пакета (без Git)
 ```bash
-pip install https://github.com/Sam-Strand/graph_compiler/releases/download/v1.0.0/graph_compiler-1.0.0-py3-none-any.whl
+pip install https://github.com/Sam-Strand/graph_compiler/releases/download/v1.0.1/graph_compiler-1.0.1-py3-none-any.whl
 ```
 
 ## Быстрый старт

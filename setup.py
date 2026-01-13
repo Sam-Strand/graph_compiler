@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="graph_compiler",
-    version="1.0.0",
+    version="1.0.1",
     url="https://github.com/Sam-Strand/graph_compiler",
     author="Садовский М.К.",
     author_email="i@maxim-sadovskiy.ru",
