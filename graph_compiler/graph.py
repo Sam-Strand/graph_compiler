@@ -4,6 +4,15 @@ from dataclasses import dataclass, field
 
 
 def build_reverse_graph(connections: List[Dict[str, Any]]) -> Dict[str, Set[str]]:
+    '''
+    Строит обратный граф (target → sources) для обхода в ширину.
+
+    Args:
+    connections: Список соединений, где каждое соединение содержит ключи 'source' и 'target'
+
+    Returns:
+    Словарь, где ключ - ID целевого узла, значение - множество ID исходных узлов
+    '''
     reverse_graph = defaultdict(set)
     for conn in connections:
         reverse_graph[conn['target']].add(conn['source'])
@@ -11,6 +20,16 @@ def build_reverse_graph(connections: List[Dict[str, Any]]) -> Dict[str, Set[str]
 
 
 def find_reachable_nodes(start_nodes: Set[str], reverse_graph: Dict[str, Set[str]]) -> Set[str]:
+    '''
+    Находит все узлы, достижимые из начальных узлов через обратный граф.
+
+    Args:
+    start_nodes: Множество начальных узлов (обычно выходные узлы графа)
+    reverse_graph: Обратный граф, построенный функцией build_reverse_graph
+
+    Returns:
+    Множество ID всех узлов, достижимых из start_nodes
+    '''
     visited = set()
     queue = deque(start_nodes)
 
@@ -25,8 +44,20 @@ def find_reachable_nodes(start_nodes: Set[str], reverse_graph: Dict[str, Set[str
 
 
 def process_variable_nodes(json_data: Dict[str, Any]) -> Dict[str, Any]:
-    '''Обрабатывает variable ноды, заменяя их реальными соединениями'''
-    
+    '''
+    Обрабатывает variable-ноды, заменяя их реальными соединениями.
+
+    Variable-ноды группируются по label. Для каждой группы:
+    1. Находим input-ноду (is_input=True) и output-ноды (is_input=False)
+    2. Создаем прямые соединения от источников input-ноды к целям output-нод
+    3. Удаляем старые соединения через variable-ноды
+
+    Args:
+    json_data: Граф с variable-нодами в формате {'nodes': [...], 'connections': [...]}
+
+    Returns:
+    Оптимизированный граф без variable-нод
+    '''
     variable_nodes = [n for n in json_data['nodes'] if n.get('type') == 'variable']
 
     groups = defaultdict(list)
@@ -77,6 +108,21 @@ def process_variable_nodes(json_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def optimize_graph(json_data: Dict[str, Any]) -> Dict[str, Any]:
+    '''
+    Оптимизирует граф: удаляет variable-ноды и недостижимые узлы.
+
+    Процесс оптимизации:
+    1. Удаление variable-нод (process_variable_nodes)
+    2. Построение обратного графа от выходных узлов
+    3. Поиск достижимых узлов
+    4. Удаление недостижимых узлов и соединений
+
+    Args:
+    json_data: Исходный граф для оптимизации
+
+    Returns:
+    Оптимизированный граф только с достижимыми узлами
+    '''    
     json_data = process_variable_nodes(json_data)
 
     output_nodes = {
@@ -100,6 +146,17 @@ def topological_sort(
     inputs: Dict[str, Dict[str, str]],
     outputs: Dict[str, Dict[str, Set[str]]]
 ) -> List[str]:
+    '''
+    Выполняет топологическую сортировку графа (алгоритм Кана).
+
+    Args:
+    nodes: Словарь всех узлов {node_id: node_data}
+    inputs: Словарь входных соединений {target_id: {input_slot: source_id}}
+    outputs: Словарь выходных соединений {source_id: {output_slot: {target_ids}}}
+
+    Returns:
+    Список ID узлов в топологическом порядке (от входов к выходам)
+    '''
     in_degree = {node_id: 0 for node_id in nodes}
 
     for target, slots in inputs.items():
@@ -133,6 +190,18 @@ class Graph:
     '''Класс графа вычислений - хранит состояние графа'''
 
     def __init__(self, json_data: Dict[str, Any]):
+        '''
+        Инициализирует граф из JSON данных.
+        Процесс инициализации:
+        1. Оптимизация графа (удаление variable-нод и недостижимых узлов)
+        2. Создание объектов Node для каждого узла
+        3. Построение структур inputs/outputs
+        4. Топологическая сортировка
+        5. Извлечение ID входных и выходных узлов
+
+        Args:
+        json_data: Граф в формате {'nodes': [...], 'connections': [...]}
+        '''
         self.json_data = optimize_graph(json_data)
 
         self.nodes = {
@@ -167,7 +236,19 @@ class Graph:
             yield self.nodes[node_id]
 
     def _extract_input_ids(self) -> List[str]:
+        '''
+        Извлекает UID всех входных узлов (type='in').
+
+        Returns:
+        Список UID входных узлов
+        '''
         return [n['uid'] for n in self.json_data['nodes'] if n.get('type') == 'in']
 
     def _extract_output_ids(self) -> List[str]:
+        '''
+        Извлекает UID всех выходных узлов (type='out').
+
+        Returns:
+        Список UID выходных узлов
+        '''
         return [n['uid'] for n in self.json_data['nodes'] if n.get('type') == 'out']
