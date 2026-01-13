@@ -61,19 +61,19 @@ def create_output_node_func(input_sources: Dict[str, tuple]) -> Callable:
     Создает функцию для выходного узла (out).
     
     Особенности:
-    - У выходного узла всегда один вход через слот 'value'
+    - У выходного узла всегда один вход через слот 'input'
     - Нет выходов
     - Просто возвращает значение, пришедшее на вход
     
     Args:
-        input_sources: Всегда содержит один ключ 'value': ('source_id', 'source_output')
+        input_sources: Всегда содержит один ключ 'input': ('source_id', 'source_output')
     '''
-    if 'value' not in input_sources:
+    if 'input' not in input_sources:
         def output_func(results: Dict[str, Any]) -> Any:
             return None
         return output_func
 
-    source_id, source_output = input_sources['value']
+    source_id, source_output = input_sources['input']
     
     def output_func(results: Dict[str, Any]) -> Any:
         value = results[source_id]
